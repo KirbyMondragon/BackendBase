@@ -1,15 +1,15 @@
-version: '3'
-
-
+version: '3.8'
 services:
-  db:
-    image: postgres:14.3
-    restart: always
-    ports:
-      - "${DB_PORT}:5432"
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+  mongodb:
+    image: mongo:latest
     container_name: ${CONTAINER_NAME}
+    ports:
+      - "${DB_PORT}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./postgres:/var/lib/postgresql/data
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

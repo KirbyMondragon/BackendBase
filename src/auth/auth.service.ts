@@ -1,65 +1,71 @@
-import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { 
+  BadRequestException, 
+  Injectable, 
+  InternalServerErrorException, 
+  UnauthorizedException 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 
 import * as bcrypt from 'bcrypt';  
-import { Repository } from 'typeorm';
-import { error } from 'console';
-
+import { MongoRepository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { LoginUserDto, CreateUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt.payload.interface';
-import { GetUser } from './decorators/get-user.decorator';
-
 
 @Injectable()
 export class AuthService {
   constructor( 
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly jwtService:JwtService
-  ){}
+    private readonly userRepository: MongoRepository<User>,  // Cambio a MongoRepository para compatibilidad con MongoDB
+    private readonly jwtService: JwtService
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
       const { password, ...userData } = createUserDto;
-      
-      // Hash the password using bcrypt
-      const hashedPassword = await bcrypt.hashSync(password, 10)
-
+  
+      // Hash de la contraseña usando bcrypt
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Crear la instancia del usuario con valores predeterminados para propiedades ausentes en el DTO
       const user = this.userRepository.create({
         ...userData,
-        password: hashedPassword  // Use the hashed password
+        password: hashedPassword,
+        isActive: true,  // Se establece el valor predeterminado manualmente
       });
-
-      await this.userRepository.save(user);
-      delete user.password;
-      delete user.roles;
-
+  
+      // Guardar el usuario en la base de datos
+      const newUser = await this.userRepository.save(user);
+  
+      // Eliminar datos sensibles antes de retornar
+      delete newUser.password;
+  
       return {
-        ...user,
-        token: this.getJwtToken({id: user.id})
+        ...newUser,
+        token: this.getJwtToken({ id: newUser.id.toString() }),  // Convertir ObjectId a string
       };
-
     } catch (error) {
       this.handleDBErrors(error);
     }
   }
+  
 
-  async checkAuthStatus( user:User){
+  async checkAuthStatus(user: User) {
     return {
       ...user,
-      token: this.getJwtToken({id: user.id})
+      token: this.getJwtToken({ id: user.id.toString() })  // Convierte ObjectId a string
     };
   }
+
   async login(loginUserDto: LoginUserDto) {
     const { password, email } = loginUserDto;
-    
     const mailLowerCase = email.toLowerCase().trim();
+    
     // Buscar el usuario y seleccionar solo el correo y la contraseña
     const user = await this.userRepository.findOne({
-        where: { email: mailLowerCase},
-        select: { email: true, password: true, id:true },
+        where: { email: mailLowerCase },
+        select: { email: true, password: true, id: true },
     });
     
     // Verificar si el usuario existe
@@ -79,22 +85,20 @@ export class AuthService {
     
     return {
       ...user,
-      token: this.getJwtToken({id: user.id})
-    }; // O puedes devolver un token de autenticación en lugar del usuario.
-}
+      token: this.getJwtToken({ id: user.id.toString() })  // Convierte ObjectId a string
+    };
+  }
 
-  private getJwtToken(payload: JwtPayload){
-    const token = this.jwtService.sign(payload);
-    return token;
+  private getJwtToken(payload: JwtPayload) {
+    return this.jwtService.sign(payload);
   }
 
   private handleDBErrors(error: any): never {
-    if (error.code === '23505') {
-      throw new BadRequestException(error.details);
+    if (error.code === 11000) {  // MongoDB duplicate key error code
+      throw new BadRequestException('Duplicate entry detected');
     }
 
-    console.log(error);
-
+    console.error(error);
     throw new InternalServerErrorException('Please check server logs');
   }
 }

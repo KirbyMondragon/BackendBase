@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { AccessRightsModule } from './access-rights/access-rights.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { AccessRightsModule } from './access-rights/access-rights.module';
     }),
 
     AuthModule,
-
+    SeedModule,
     AccessRightsModule,
   ],
   controllers: [AppController],

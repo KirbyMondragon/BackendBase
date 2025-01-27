@@ -12,12 +12,14 @@ import { MongoRepository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { LoginUserDto, CreateUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt.payload.interface';
+import { AccessRightsService } from '../access-rights/access-rights.service';
 
 @Injectable()
 export class AuthService {
   constructor( 
     @InjectRepository(User)
     private readonly userRepository: MongoRepository<User>,  // Cambio a MongoRepository para compatibilidad con MongoDB
+    private readonly accessRightsService:AccessRightsService, 
     private readonly jwtService: JwtService
   ) {}
 
@@ -36,8 +38,9 @@ export class AuthService {
       });
   
       // Guardar el usuario en la base de datos
-      const newUser = await this.userRepository.save(user);
-  
+      const newUser =  await this.userRepository.save(user);
+      
+      await this.accessRightsService.createPermission(user);
       // Eliminar datos sensibles antes de retornar
       delete newUser.password;
   

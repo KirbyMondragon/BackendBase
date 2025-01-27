@@ -1,13 +1,13 @@
-import { Entity, ObjectIdColumn, ObjectId, Column, Index } from 'typeorm';
+import { Entity, ObjectIdColumn, ObjectId, Column } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('access_rights')
 export class AccessRight {
     @ObjectIdColumn()
     @ApiProperty({ description: 'Unique identifier for the access right', type: 'string', format: 'ObjectId' })
-    id: ObjectId;
+    _id: ObjectId;
 
-    @Column()
+    @Column('objectId')
     @ApiProperty({ description: 'Module ID associated with the access right', type: 'string', format: 'ObjectId' })
     moduleId: ObjectId;
 
@@ -27,8 +27,7 @@ export class AccessRight {
     @ApiProperty({ description: 'Permission to delete resources', default: false })
     canDelete: boolean;
 
-    @Column()
-    @Index()
+    @Column('objectId')
     @ApiProperty({ description: 'User ID associated with the access right', type: 'string', format: 'ObjectId' })
     userId: ObjectId;
 }

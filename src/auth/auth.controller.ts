@@ -8,7 +8,6 @@ import { User } from './entities/user.entity';
 import { GetUser } from './decorators/get-user.decorator';
 import { Auth } from './decorators/auth.decorator';
 import { ApiResponse } from '@nestjs/swagger';
-import { ValidRoles } from './interfaces';
 
 
 @Controller('auth')

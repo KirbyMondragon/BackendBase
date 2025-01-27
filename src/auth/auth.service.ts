@@ -53,13 +53,13 @@ export class AuthService {
     };
   }
   async login(loginUserDto: LoginUserDto) {
-    const { password, mail } = loginUserDto;
+    const { password, email } = loginUserDto;
     
-    const mailLowerCase = mail.toLowerCase().trim();
+    const mailLowerCase = email.toLowerCase().trim();
     // Buscar el usuario y seleccionar solo el correo y la contraseña
     const user = await this.userRepository.findOne({
-        where: { mail: mailLowerCase},
-        select: { mail: true, password: true, id:true },
+        where: { email: mailLowerCase},
+        select: { email: true, password: true, id:true },
     });
     
     // Verificar si el usuario existe

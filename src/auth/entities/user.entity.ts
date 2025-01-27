@@ -19,7 +19,7 @@ export class User {
     @Column('text', {
         unique:true
     })
-    mail:string;
+    email:string;
 
     //* Password
     @ApiProperty({
@@ -64,7 +64,7 @@ export class User {
     @BeforeInsert()
     checkFieldsInsert() {
 
-        this.mail = this.mail
+        this.email = this.email
             .toLowerCase()
             .trim();
     }
@@ -72,7 +72,7 @@ export class User {
     @BeforeUpdate()
     checkFieldsBeforeUpdate() {
 
-        this.mail = this.mail
+        this.email = this.email
             .toLowerCase()
             .trim();
     }
